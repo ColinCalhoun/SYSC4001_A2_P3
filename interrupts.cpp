@@ -152,7 +152,63 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //Add your EXEC output here
 
-        
+            unsigned int _program_size = get_size(program_name, external_files);
+
+            if (_program_size == (unsigned int) -1) {
+                _program_size = 1;
+            }
+
+            PCB temp_process = current;
+            temp_process.program_name = program_name;
+            temp_process.size = _program_size;  
+
+            if(temp_process.partition_number != -1) {
+                free_memory(&temp_process);
+            }
+
+            current.program_name = program_name;
+            current.size = _program_size;
+
+            // Allocate memory partition for new process
+            if (!allocate_memory(&current)) {
+                execution += std::to_string(current_time) + ", 0, Memory allocation failed for EXEC process\n";
+                system_status += "ERROR: Could not allocate memory for EXEC process (PID "
+                                + std::to_string(current.PID) + ")\n";
+                return {execution, system_status, current_time};
+            }                 
+
+            // Random number generator
+            int random_execution_time;
+
+            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) 
+                        + ", Program is " + std::to_string(get_size(program_name, external_files)) + "Mb large\n";
+            current_time += duration_intr;
+
+            unsigned int external_program_size = get_size(program_name, external_files) * 15;
+            execution += std::to_string(current_time) + ", " + std::to_string(external_program_size) 
+                        + ", loading program into memory\n";
+            current_time += external_program_size;
+
+            random_execution_time = std::rand() % 10 + 1; // Generate random execution time between 1 and 10 ms
+            execution += std::to_string(current_time)  +  ", " + std::to_string(random_execution_time) +  " , marking partition as occupied\n";
+            current_time += random_execution_time;
+
+            random_execution_time = std::rand() % 10 + 1; // Generate random execution time between 1 and 10 ms
+            execution += std::to_string(current_time) +  ", " + std::to_string(random_execution_time) + " , updating PCD\n";
+            current_time += random_execution_time;
+
+            execution += std::to_string(current_time) + ", " + std::to_string(0) +  ", scheduler called\n"; // Assume 0 execution time for scheduling
+
+            execution += std::to_string(current_time) + ", 1, IRET\n";
+            current_time += 1;
+            
+            std::vector<PCB> temp_queue = wait_queue;
+            temp_queue.erase(
+                std::remove_if(temp_queue.begin(), temp_queue.end(), [&](const PCB& pcb){return pcb.PID == current.PID; }),
+                temp_queue.end());
+            system_status += "time: " + std::to_string(current_time) + "; current trace: " + activity + " " + program_name + " " + std::to_string(duration_intr) + "\n";
+            system_status += print_PCB(current, temp_queue);
+
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             std::ifstream exec_trace_file(program_name + ".txt");
@@ -165,7 +221,14 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
-            
+
+            if (!exec_traces.empty()) {
+                auto [_execution, _system_status, child_end_time] = simulate_trace(exec_traces, current_time, vectors, delays, external_files, current, wait_queue);
+                execution += _execution;
+                system_status += _system_status;
+                current_time = child_end_time;
+            }         
+
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             break; //Why is this important? (answer in report)
