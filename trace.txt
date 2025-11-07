@@ -1,0 +1,6 @@
+FORK, 10 //fork is called by init
+IF_CHILD, 0
+EXEC program1, 50 //child executes program1
+IF_PARENT, 0
+EXEC program2, 25 //parent executes program2
+ENDIF, 0 //rest of the trace doesn't really matter (why?)
