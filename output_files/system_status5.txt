@@ -1,0 +1,38 @@
+time: 26; current trace: FORK, 10
++------------------------------------------------------+
+| PID | program name | partition number | size | state |
++------------------------------------------------------+
+| 5   | init         | 5                | 1    | running |
+| 4   | init         | 6                | 1    | waiting |
++------------------------------------------------------+
+
+time: 280; current trace: EXEC program1, 50
++------------------------------------------------------+
+| PID | program name | partition number | size | state |
++------------------------------------------------------+
+| 5   | program1     | 4                | 10   | running |
+| 4   | init         | 6                | 1    | waiting |
++------------------------------------------------------+
+
+time: 560; current trace: EXEC program2, 30
++------------------------------------------------------+
+| PID | program name | partition number | size | state |
++------------------------------------------------------+
+| 4   | program2     | 3                | 15   | running |
++------------------------------------------------------+
+
+time: 880; current trace: SEMWAIT, shared_memory_lock
++------------------------------------------------------+
+| PID | program name | partition number | size | state |
++------------------------------------------------------+
+| 5   | program1     | 4                | 10   | waiting (semaphore lock) |
+| 4   | program2     | 3                | 15   | running |
++------------------------------------------------------+
+
+time: 940; current trace: SEMSIGNAL, shared_memory_lock
++------------------------------------------------------+
+| PID | program name | partition number | size | state |
++------------------------------------------------------+
+| 5   | program1     | 4                | 10   | running |
+| 4   | program2     | 3                | 15   | waiting |
++------------------------------------------------------+
