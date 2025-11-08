@@ -1,14 +1,14 @@
 /**
  *
- * @file interrupts_101307947_101306496.cpp
+ * @file interrupts.cpp
  * @author Sasisekhar Govind
  * 
  * @author James Noel 101306496
- * @author Colin Calhoun 101307947
+ * @auth
  *
  */
 
-#include "interrupts_101307947_101306496.hpp"
+#include "interrupts.hpp"
 
 std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string> trace_file, int time, std::vector<std::string> vectors, std::vector<int> delays, std::vector<external_file> external_files, PCB current, std::vector<PCB> wait_queue) {
 
@@ -66,9 +66,9 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             execution += std::to_string(current_time) + ", " + std::to_string(random_execution_time) + ", cloning the PCB\n";
             current_time += random_execution_time;
 
-            bool allocation_successful = allocate_memory(&child); // allocate child
+            bool allocation_successful = allocate_memory(&child);
 
-            if (!allocation_successful) { // If child is not allocated
+            if (!allocation_successful) {
                 execution += std::to_string(current_time) + ", 0, Memory allocation unsucessful\n";
                 system_status += "ERROR: Memory allocation failed (PID " + std::to_string(child.PID) + ")\n";
 
@@ -76,7 +76,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 system_status += "time: " + std::to_string(current_time) + "; current trace: " + activity + " " +  std::to_string(duration_intr) + "\n";
                 system_status += print_PCB(current, temp_queue);
                 
-            } else { // If child is allocated
+            } else {
                 wait_queue.push_back(current);
 
                 execution += std::to_string(current_time) + ", " + std::to_string(0) + ", scheduler called\n";
@@ -128,7 +128,6 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the child's trace, run the child (HINT: think recursion)      
 
-            // Recursively simulate the trace of the child
             if(!child_trace.empty() && allocation_successful) {
                 auto [_execution, _system_status, child_end_time] = simulate_trace(child_trace, current_time, vectors, delays, external_files, child, wait_queue);
 
@@ -137,12 +136,11 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 current_time = child_end_time;     
             }
             
-            if(child.partition_number != -1) { // free memory if child is allocated
+            if(child.partition_number != -1) {
                 free_memory(&child);
             }
             
-            // remove child process from wait queue
-            wait_queue.erase( 
+            wait_queue.erase(
                 std::remove_if(wait_queue.begin(), wait_queue.end(), [&](const PCB& p){return p.PID == child.PID; }),
                 wait_queue.end());
 
@@ -157,25 +155,20 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //Add your EXEC output here
 
-            // Get size of given program
             unsigned int _program_size = get_size(program_name, external_files);
 
-            // Check for invalid size
             if (_program_size == (unsigned int) -1) {
                 _program_size = 1;
             }
 
-            // Temporary copy of the current process to modify before updating current process
             PCB temp_process = current;
             temp_process.program_name = program_name;
             temp_process.size = _program_size;  
 
-            // Free memory before new program is loaded
             if(temp_process.partition_number != -1) {
                 free_memory(&temp_process);
             }
 
-            // Update current with new program and program size
             current.program_name = program_name;
             current.size = _program_size;
 
@@ -232,7 +225,6 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
 
-            // Recursively simulate exec trace
             if (!exec_traces.empty()) {
                 auto [_execution, _system_status, child_end_time] = simulate_trace(exec_traces, current_time, vectors, delays, external_files, current, wait_queue);
                 execution += _execution;
